@@ -9,10 +9,10 @@ Farthest point sampling (FPS) is a technique used to sample a point cloud effici
 
 # The algorithm
 
-Open-MMLab's OpenPCDet has many clear implementations of many 3D object detection algorithms. I would recommend going through the repository to understand the algorithms yourself. OpenPCDet has their own implementation of FPS (linked [here](https://github.com/open-mmlab/OpenPCDet/blob/master/pcdet/ops/pointnet2/pointnet2_batch/src/sampling_gpu.cu#L101)) which we'll go through now.
+Open-MMLab's OpenPCDet has many clear implementations of 3D object detection algorithms. I would recommend going through the repository to understand the algorithms yourself. OpenPCDet has their own implementation of FPS (linked [here](https://github.com/open-mmlab/OpenPCDet/blob/master/pcdet/ops/pointnet2/pointnet2_batch/src/sampling_gpu.cu#L101)) which we'll go through now.
 
 
-The algorithm is wrtten. I'll try and explain some of the concepts as they come up but I would recommend reading [this](https://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf) for an excellent primer on CUDA basics.
+The algorithm is written in CUDA. I'll try and explain some of the concepts as they come up but I would recommend reading [this](https://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf) for an excellent primer on CUDA basics.
 
 {% highlight c++ %}
 template <unsigned int block_size>
@@ -44,7 +44,7 @@ temp += batch_index * n;
 idxs += batch_index * m;
 {% endhighlight %}
 
-Offset the pointers to point to the specified batch. Since all the data is passed in as 1D arrays, we need to offset the `dataset`, `temp`, and `idxs` pointers. For example, ff we have 2 batches with 5 points each, the `dataset` pointer would be pointing to index 0 for batch 1 and index 15 (remember each point has an x, y, and z!) as shown here:
+Offset the pointers to point to the specified batch. Since all the data is passed in as 1D arrays, we need to offset the `dataset`, `temp`, and `idxs` pointers. For example, if we have 2 batches with 5 points each, the `dataset` pointer would be pointing to index 0 for batch 1 and index 15 (remember each point has an x, y, and z!) as shown here:
 
 ![pointer offset](/images/fps/pointer-offset.png)
 
@@ -93,7 +93,7 @@ We create a for loop to sample `m-1` times (Remember that the first point in eac
 `x2`, `y2`, and `z2` are just values of the candidate point `k`. `d` is the squared distance between `old` and `k`. Now we have this funky business of:
 
 {% highlight c++ %}
-float d2 = min(d, temp[k])`
+float d2 = min(d, temp[k])
 {% endhighlight %}
 
 To explain, we need to know what's in `temp`. If we look [here](https://github.com/open-mmlab/OpenPCDet/blob/32567b044c327a4d3cee179094f32646d8311c95/pcdet/ops/pointnet2/pointnet2_batch/pointnet2_utils.py#L26), we note that:
@@ -102,16 +102,15 @@ To explain, we need to know what's in `temp`. If we look [here](https://github.c
 temp = torch.cuda.FloatTensor(B, N).fill_(1e10)
 {% endhighlight %}
 
-Okay, so on the first iteration of the outer for loop (when `j = 1`), `d2` is equal to `d`. Let's keep a mental note of that as we'll come back to this. We store this value in `temp` with:
+Okay, so `temp` is just array filled with `1e10` or a really large number. On the first iteration of the outer for loop (when `j = 1`), `d2` will equal `d` since `d < 1e10`. Let's keep a mental note of that as we'll come back to this. We store this value in `temp` with:
 
 {% highlight c++ %}
 temp[k] = d2;
 {% endhighlight %}
 
 {% highlight c++ %}
-    besti = d2 > best ? k : besti;
-    best = d2 > best ? d2 : best;
-}
+besti = d2 > best ? k : besti;
+best = d2 > best ? d2 : best;
 {% endhighlight %}
 
 Now we store the best result in `besti` and `best`. This is for when the number of points in a batch is greater than the number of threads (which is almost always the case). Let's consider a case for 4 threads and 7 points in a batch:
@@ -135,7 +134,7 @@ dists_i[tid] = besti;
 __syncthreads();
 {% endhighlight %}
 
-All the best distances for each thread is stored in `dists` and `dists_i`. The threads are synced to make sure `dists` and `dists_i` are fully populated.
+All the best (largest) distances for each thread is stored in `dists` and `dists_i`. The threads are synced to make sure `dists` and `dists_i` are fully populated.
 
 {% highlight c++ %}
 if (block_size >= 1024) {
@@ -185,7 +184,7 @@ Now, `temp` isn't a default value but actually stores some other value. `temp` s
 temp[k] = d2
 {% endhighlight %}
 
-We are calculating the shortest distance between the currently sampled point sets and the point `k`. What this means is that **FPS maximizes the shortest distance between sampled points.** masotrix says in this [comment](https://github.com/charlesq34/pointnet2/issues/26) in the Pointnet++ repo:
+we are calculating the shortest distance between the currently sampled point sets and the point `k`. What this means is that **FPS maximizes the shortest distance between sampled points.** masotrix says in this [comment](https://github.com/charlesq34/pointnet2/issues/26) in the Pointnet++ repo:
 
 >At first it can be thought that it only uses the latest point instead of ALL the points that have already been selected, but the key is in the "temp" array (not very descriptive name) the one keeps the distance from the selected points set to every other point. As you can see, the variable "d2" is equal to the minimum between the stored distance from the selected point set and the candidate point (in "temp"), and the distance from the last point selected and the candidate point (variable "d"). In case the latter is less, the stored distance in "temp" is updated with the distance in "d2" (already equal to "d"), Note that this is made for every point, even for the ones already in the selected point set, making "temp" to have many of its elements be 0.
 
@@ -193,6 +192,6 @@ Everytime we encounter a point that gives us a smaller distance than what is in 
 
 ![temp](/images/fps/temp.png)
 
-In this picture, the red circles are the current sample point set, the blue circle is the current point `k` and the black line represents `temp[k]` or the shortest distance from the previous point set to the point `k`. If the shortest distance between the blue and red circles is smaller than the black line, `temp[k]` is updated. In this way, the next sampled point is always the point that is the farthest away from all the points in the current sampled point set.
+In this picture, the red circles are the current sample point set, the blue circle is the current point `k` and the black line represents `temp[k]` or the shortest distance from the previous point set to the point `k`. If the shortest distance between the blue and red circles is smaller than the black line, `temp[k]` is updated. This way, the next sampled point is always the point that is the farthest away from all the points in the current sampled point set.
 
 Hopefully this clarifies how FPS works and how it is implemented in Pointnet++ and PV-RCNN. Thanks for reading!
