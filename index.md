@@ -7,7 +7,7 @@ layout: page
 <br>
 Hi! I'm Jordan Hu, a 2nd year MASc candidate at the University of Toronto. I'm currently part of the Toronto Robotics and Artificial Intelligence Lab ([TRAIL](https://www.trailab.utias.utoronto.ca/)), supervised by Professor Steven Waslander. My main research interests are in LiDAR 3D object detection in both supervised and self-supervised settings.
 
-<center> <a href="https://www.dropbox.com/s/hhqg1jh3e8sfaes/Resume12.pdf?dl=0">Resume</a> | <a href="https://scholar.google.com/citations?user=aPx2zd8AAAAJ&hl=en">Google Scholar</a> | <a href="https://github.com/jskhu">Github</a> | <a href="https://www.linkedin.com/in/jskhu/">LinkedIn</a> </center>
+<center> <a href="https://www.dropbox.com/s/514iiqt8wutbc30/jordan_hu_resume.pdf?dl=0">Resume</a> | <a href="https://scholar.google.com/citations?user=aPx2zd8AAAAJ&hl=en">Google Scholar</a> | <a href="https://github.com/jskhu">Github</a> | <a href="https://www.linkedin.com/in/jskhu/">LinkedIn</a> </center>
 <br>
 
 ### Peer-Reviewed Conference Articles
