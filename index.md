@@ -11,6 +11,7 @@ Hi! I'm Jordan Hu, a software engineer at [Waabi](https://waabi.ai/). I was prev
 <br>
 
 ### Peer-Reviewed Conference Articles
+- A. Harakeh, **J. S. K. Hu**, N. Guan, S. L. Waslander, L. Paull, "[Estimating Regression Predictive Distributions with Sample Networks](https://arxiv.org/abs/2211.13724)", *The 37th AAAI Conference on Artificial Intelligence*, (**AAAI&nbsp;2023**)
 - A. Mahmoud, **J. S. K. Hu**, S. L. Waslander, “[Dense Voxel Fusion for 3D Object Detection](https://arxiv.org/abs/2203.00871)”, *2022 IEEE/CVF Winter Conference on Applications of Computer Vision*, (**WACV&nbsp;2023**)
 - **J. S. K. Hu**, T. Kuai, S. L. Waslander, “[Point Density-Aware Voxels for LiDAR 3D Object Detection](https://arxiv.org/abs/2203.05662)”, *2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition*, (**CVPR&nbsp;2022**).
 - **J. S. K. Hu**, and S. L. Waslander, “[Pattern-Aware Data Augmentation for LiDAR 3D Object Detection](https://arxiv.org/abs/2112.00050)”, *The 24th IEEE International Conference on Intelligent Transportation Systems*, (**ITSC&nbsp;2021**).
